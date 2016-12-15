@@ -1,0 +1,34 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+`media-stream-recorder`
+polymer element for the MediaStreamRecorder api
+
+@demo demo/index.html 
+-->
+
+<dom-module id="media-stream-recorder">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]</h2>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'media-stream-recorder',
+
+      properties: {
+        prop1: {
+          type: String,
+          value: 'media-stream-recorder',
+        },
+      },
+
+    });
+  </script>
+</dom-module>

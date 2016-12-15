@@ -1,0 +1,9 @@
+# Libs
+bower_components
+node_modules
+
+# For vim
+tags
+.*.swp
+
+.tmp
