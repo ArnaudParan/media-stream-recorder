@@ -4,18 +4,12 @@
 `media-stream-recorder`
 polymer element for the MediaStreamRecorder api
 
-@demo demo/index.html 
+@demo demo/index.html
 -->
 
 <dom-module id="media-stream-recorder">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-    <h2>Hello [[prop1]]</h2>
-  </template>
+
+  <script src="../msr/MediaStreamRecorder.js"></script>
 
   <script>
     Polymer({
@@ -23,12 +17,185 @@ polymer element for the MediaStreamRecorder api
       is: 'media-stream-recorder',
 
       properties: {
-        prop1: {
-          type: String,
-          value: 'media-stream-recorder',
+
+        /**
+         * Fired when data is available
+         * data can be found in detail, it can be read by a FileReader
+         *
+         * @see https://github.com/streamproc/MediaStreamRecorder#ondataavailable
+         * @event data-available
+         */
+
+        /**
+         * Fired when recording is stopped
+         *
+         * @see https://github.com/streamproc/MediaStreamRecorder#onstop
+         * @event stop
+         */
+
+        /**
+         * Describes the number of channels of the audio, 1 and 2 are available
+         * for mono (only left channel) and stereo
+         *
+         * @see https://github.com/streamproc/MediaStreamRecorder#audiochannels
+         */
+        channels: {
+          type: Number,
+          value: 1,
+          observer: '_createRecorder'
         },
+
+        /**
+         * The sample rate in hertz, must be between 22050 and 96000
+         * Not available on windows yet
+         *
+         * @see https://github.com/streamproc/MediaStreamRecorder#samplerate
+         */
+        sampleRate: {
+          type: Number,
+          value: 44100,
+          observer: '_createRecorder'
+        },
+
+        /**
+         * The mime type of the audio recorded.
+         * Available values are audio/wav, audio/pcm, audio/webm, audio/ogg
+         * video has not been integrated yet
+         *
+         * @see https://github.com/streamproc/MediaStreamRecorder#mimetype
+         */
+        mimeType: {
+          type: String,
+          value: 'audio/webm',
+          observer: '_createRecorder'
+        },
+
+        /**
+         * The mediaStreamRecorder object.
+         */
+        _mediaRecorder: {
+          type: Object,
+          value: null
+        },
+
+        /**
+         * Tells if recording is on or no
+         */
+        recording: {
+          type: Boolean,
+          value: false
+        }
+
       },
+
+      ready: function() {
+        navigator.getUserMedia = (navigator.getUserMedia ||
+                                  navigator.mozGetUserMedia ||
+                                  navigator.msGetUserMedia ||
+                                  navigator.webkitGetUserMedia);
+
+        if (!navigator.getUserMedia) {
+          console.warn('this navigator does not handle media recording');
+          return
+        }
+
+        this._createRecorder();
+      },
+
+      /**
+       * creates a new recorder when new values are gathered
+       */
+      _createRecorder: function() {
+        if (this.recording) {
+          this.stop();
+          console.warn('Recording stopped because the params have been updated');
+        }
+
+        var onSuccess = function(stream) {
+          this.set('_mediaRecorder', new MediaStreamRecorder(stream));
+          this.set('_mediaRecorder.recorderType', StereoAudioRecorder);
+          this.set('_mediaRecorder.audioChannels', this.channels);
+          this.set('_mediaRecorder.mimeType', this.mimeType);
+          this.set('_mediaRecorder.sampleRate', this.sampleRate);
+
+          // Called when data is available
+          this.set('_mediaRecorder.ondataavailable', function(evt) {
+            this.fire('data-available', evt);
+          }.bind(this));
+
+          // Called when record stops
+          this.set('_mediaRecorder.onstop', function(evt) {
+            this.fire('stop', evt);
+          }.bind(this));
+
+        }.bind(this);
+
+        var onError = function(err) {
+          console.log('The following error occured: ' + err);
+        }.bind(this);
+
+        var constraints = { audio: true };  // TODO allow video
+        navigator.getUserMedia(constraints, onSuccess, onError);
+      },
+
+      /**
+       * start recording
+       *
+       * @param {number} the time between two dumpings in milliseconds
+       * @see https://github.com/streamproc/MediaStreamRecorder#start
+       */
+      start: function(time) {
+        this.recording = true;
+        try {
+          this._mediaRecorder.start(time);
+        } catch(err) {
+          console.warn('The media recorder has not been created yet');
+        }
+      },
+
+      /**
+       * stop recording
+       *
+       * @see https://github.com/streamproc/MediaStreamRecorder#stop
+       */
+      stop: function() {
+        this.recording = false;
+        try {
+          this._mediaRecorder.stop();
+        } catch(err) {
+          console.warn('The media recorder has not been created yet');
+        }
+      },
+
+      /**
+       * pause recording
+       *
+       * @see https://github.com/streamproc/MediaStreamRecorder#pause
+       */
+      pause: function() {
+        this.recording = false;
+        try {
+          this._mediaRecorder.pause();
+        } catch(err) {
+          console.warn('The media recorder has not been created yet');
+        }
+      },
+
+      /**
+       * resume recording
+       *
+       * @see https://github.com/streamproc/MediaStreamRecorder#resume
+       */
+      resume: function() {
+        this.recording = false;
+        try {
+          this._mediaRecorder.resume();
+        } catch(err) {
+          console.warn('The media recorder has not been created yet');
+        }
+      }
 
     });
   </script>
+
 </dom-module>

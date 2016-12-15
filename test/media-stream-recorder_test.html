@@ -28,5 +28,188 @@
 
       });
     </script>
+
+
+    <test-fixture id="initiate">
+      <template>
+        <media-stream-recorder channels="1" mime-type="audio/wav"
+        sample-rate="45000"></media-stream-recorder>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('media-stream-recorder', function() {
+
+        test('initiating the element works', function(done) {
+          var element = fixture('initiate');
+          setTimeout(function() {
+              assert.equal(element._mediaRecorder.audioChannels, 1);
+              assert.equal(element._mediaRecorder.mimeType, 'audio/wav');
+              assert.equal(element._mediaRecorder.sampleRate, 45000);
+              done();
+            },
+            100);
+        });
+
+      });
+    </script>
+
+
+    <test-fixture id="update-media-recorder">
+      <template>
+        <media-stream-recorder></media-stream-recorder>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('media-stream-recorder', function() {
+
+        test('updating the channels recreates the recorder', function(done) {
+          var element = fixture('update-media-recorder');
+          setTimeout(function() {
+            element.set('channels', 2);
+            setTimeout(function() {
+                assert.equal(element._mediaRecorder.audioChannels, 2);
+                done();
+              },
+              100);
+            }.bind(this),
+            100);
+        });
+
+        test('updating the mimeType recreates the recorder', function(done) {
+          var element = fixture('update-media-recorder');
+          setTimeout(function() {
+            element.set('mimeType', 'audio/wav');
+            setTimeout(function() {
+                assert.equal(element._mediaRecorder.mimeType, 'audio/wav');
+                done();
+              },
+              100);
+            }.bind(this),
+            100);
+        });
+
+        test('updating the sampleRate recreates the recorder', function(done) {
+          var element = fixture('update-media-recorder');
+          setTimeout(function() {
+            element.set('sampleRate', 30000);
+            setTimeout(function() {
+                assert.equal(element._mediaRecorder.sampleRate, 30000);
+                done();
+              },
+              100);
+            }.bind(this),
+            100);
+        });
+
+      });
+    </script>
+
+    <test-fixture id="start-stop">
+      <template>
+        <media-stream-recorder></media-stream-recorder>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('media-stream-recorder', function() {
+
+        test('start and stop toggles the recording value', function() {
+          var element = fixture('start-stop');
+          assert.isNotOk(element.recording);
+
+          element.start();
+          assert.isOk(element.recording);
+
+          element.stop();
+          assert.isNotOk(element.recording);
+        });
+
+        test('start starts the recorder', function(done) {
+          var element = fixture('start-stop');
+          var time = 2;
+          element._mediaRecorder = {
+            start: function(t) {
+              assert.equal(t, time);
+              done();
+            }
+          }
+          element.start(time);
+        });
+
+        test('stop stops the recorder', function(done) {
+          var element = fixture('start-stop');
+          element._mediaRecorder = {
+            stop: function() {
+              done();
+            }
+          }
+          element.stop();
+        });
+
+        test('pause pauses the recorder', function(done) {
+          var element = fixture('start-stop');
+          element._mediaRecorder = {
+            pause: function() {
+              done();
+            }
+          }
+          element.pause();
+        });
+
+        test('resume resumes the recorder', function(done) {
+          var element = fixture('start-stop');
+          element._mediaRecorder = {
+            resume: function() {
+              done();
+            }
+          }
+          element.resume();
+        });
+
+      });
+    </script>
+
+    <test-fixture id="events">
+      <template>
+        <media-stream-recorder></media-stream-recorder>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('media-stream-recorder', function() {
+
+        test('on-data-available event works', function(done) {
+          var element = fixture('events');
+          var data = 'data';
+
+          element.addEventListener('data-available', function(evt) {
+            assert.equal(evt.detail, data);
+            done();
+          });
+
+          setTimeout(function() {
+            element._mediaRecorder.ondataavailable(data);
+          }, 100);
+
+        });
+
+        test('on-stop event works', function(done) {
+          var element = fixture('events');
+
+          element.addEventListener('stop', function() {
+            done();
+          });
+
+          setTimeout(function() {
+            element._mediaRecorder.onstop();
+          }, 100);
+
+        });
+
+      });
+    </script>
+
   </body>
 </html>
